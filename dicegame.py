@@ -36,7 +36,7 @@ def builder1(dice, turn, scores, escrow, buildable=False):
     else:
         return to_escrow, 'roll'
 
-def play_dice(players=[dumb1, dumb1], building=False, end_score=2000, rebuttals=True):
+def play_dice(players=[dumb1, dumb1], building=True, end_score=10000, rebuttals=True):
     """ one game of dice
     """
 
@@ -167,5 +167,19 @@ def roll(num_dice):
 def bottoms(dice):
     return [7 - die for die in dice]
 
+def evaluate_strategies(players=[dumb1, dumb1, builder1], building=True, end_score=10000, rebuttals=True):
+    wins = [0] * len(players)
+    for i in range(100):
+        # say the index 0 player wins
+        order = range(len(players))
+        random.shuffle(order) # order is now e.g. [2,0,1]
+        shuffled_players = [players[i] for i in order]
+        scores = play_dice(shuffled_players, building, end_score, rebuttals)
+        shuffled_winner = max( (v, i) for i, v in enumerate(scores) )[1] # eg index 0 (was index 2)
+        winner = order[shuffled_winner] # eg index 2
+        wins[winner] += 1
+    return wins
+
 if __name__ == '__main__':
-    print "\n\nfinal score: " + str(play_dice(players=[dumb1, dumb1, builder1], building=True))
+    # print "\n\nfinal score: " + str(play_dice(players=[dumb1, dumb1, builder1], building=True))
+    print "\n\n wins: " + str(evaluate_strategies())
