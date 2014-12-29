@@ -104,7 +104,7 @@ def options(dice):
     opts = []
     dice.sort()
     for i in range(len(dice)):
-        for combination in itertools.combinations(dice, i):
+        for combination in itertools.combinations(dice, i+1):
             opt = value(combination, True)
             if opt[0] > 0 and opt not in opts:
                 opts.append(opt)
