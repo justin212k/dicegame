@@ -26,14 +26,14 @@ def threshold(dice, scores, escrow):
         else:
             return [5], 'roll'
 
-def play_dice(players=[dumb1, dumb1]):
+def play_dice(players=[dumb1, dumb1], building=False):
     """ currently doesn't allow building off scores
         also doesn't allow rebuttals
     """
     dice, turn, scores, escrow = [], 0, [0]*len(players), 0
     while max(scores) < 2000:
         # a turn starts with dice presented to a player,
-        # they must first choose what to escrow, 
+        # they must first choose what to escrow,
         # then whether to bank or roll
         # sometimes a player is presented with [] as dice
         # they must roll in this case?
@@ -46,11 +46,12 @@ def play_dice(players=[dumb1, dumb1]):
             dice.remove(die)
         escrow += value(to_escrow)
         if move == 'bank':
-            dice = []
             scores[turn] += escrow
+            if not building:
+                dice = []
+                escrow = 0
             turn = (turn + 1) % len(players)
-            escrow = 0
-        if move == 'bottoms':
+        elif move == 'bottoms':
             dice = roll(len(dice))
             print "player %s rolls %s ..." % (turn, dice)
             dice = bottoms(dice)
@@ -131,4 +132,4 @@ def bottoms(dice):
     return [7 - die for die in dice]
 
 if __name__ == '__main__':
-    print "\n\nfinal score: " + str(play_dice())
+    print "\n\nfinal score: " + str(play_dice(building=True))
