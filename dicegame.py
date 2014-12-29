@@ -21,6 +21,21 @@ def dumb1(dice, turn, scores, escrow, buildable=False):
     else:
         return to_escrow, 'roll'
 
+def builder1(dice, turn, scores, escrow, buildable=False):
+    """ takes the state of the game and returns a move
+
+    returns a subset of dice to move to escrow, and an action
+    """
+    if buildable:
+        return [], 'roll'
+    if dice == []:
+        return [], 'roll'
+    new_value, to_escrow = options(dice)[0]
+    if escrow + new_value >= 400:
+        return to_escrow, 'bank'
+    else:
+        return to_escrow, 'roll'
+
 def play_dice(players=[dumb1, dumb1], building=False, end_score=2000, rebuttals=True):
     """ one game of dice
     """
@@ -153,4 +168,4 @@ def bottoms(dice):
     return [7 - die for die in dice]
 
 if __name__ == '__main__':
-    print "\n\nfinal score: " + str(play_dice(players=[dumb1, dumb1, dumb1], building=True))
+    print "\n\nfinal score: " + str(play_dice(players=[dumb1, dumb1, builder1], building=True))
