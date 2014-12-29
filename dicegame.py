@@ -15,15 +15,23 @@ def dumb1(dice, scores, escrow):
             return [1], 'bottoms'
         else:
             return [1], 'roll'
-    return [5], 'bank'
+    return [], 'bank'
 
+def threshold(dice, scores, escrow):
+    if escrow >= 400:
+        return [], 'bank'
+    else:
+        if 1 in dice:
+            return [1], 'roll'
+        else:
+            return [5], 'roll'
 
 def play_dice(players=[dumb1, dumb1]):
     """ currently doesn't allow building off scores
         also doesn't allow rebuttals
     """
     dice, turn, scores, escrow = [], 0, [0]*len(players), 0
-    while max(scores) < 10000:
+    while max(scores) < 2000:
         # a turn starts with dice presented to a player,
         # they must first choose what to escrow, 
         # then whether to bank or roll
@@ -52,13 +60,15 @@ def play_dice(players=[dumb1, dumb1]):
                 turn = (turn + 1) % len(players)
                 dice = []
                 escrow = 0
-
         elif move == 'roll':
             dice = roll(len(dice))
             dice.sort()
             print "player %s rolls %s " % (turn, dice)
-            if not can_score(dice): # fail to score: next turn
-                print 'fail to score with ' + str(dice)
+            if value(dice) == 0: # fail to score: next turn
+                if len(dice) == 6:
+                    print "farkle! " + str(dice)
+                else:
+                    print 'fail to score with ' + str(dice)
                 turn = (turn + 1) % len(players)
                 dice = []
                 escrow = 0
