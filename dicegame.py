@@ -144,12 +144,6 @@ def value(dice, return_used=False):
     if return_used: return pts, used
     return pts
 
-
-def can_score(dice):
-    if 1 not in dice and 5 not in dice:
-        return False
-    return True
-
 def roll(num_dice):
     if num_dice == 0:
         num_dice = 6
