@@ -11,12 +11,12 @@ def dumb1(dice, turn, scores, escrow, buildable=False):
 
     returns a subset of dice to move to escrow, and an action
     """
-    if dice == []:
-        return [], 'roll'
     if buildable:
         return [], 'start fresh'
-    to_escrow = escrow_possibilities(dice)[0][1]
-    if escrow >= 200:
+    if dice == []:
+        return [], 'roll'
+    new_value, to_escrow = options(dice)[0]
+    if escrow + new_value >= 400:
         return to_escrow, 'bank'
     else:
         return to_escrow, 'roll'
@@ -36,13 +36,13 @@ def play_dice(players=[dumb1, dumb1], building=False, end_score=2000, rebuttals=
         # they must roll in this case?
         turn_over = False
         print "\nnew round. scores: %s" % (scores,)
-        print "player %s is presented with dice: %s, and %s in escrow " % (turn, dice, escrow)
+        # print "player %s is presented with dice: %s, and %s in escrow " % (turn, dice, escrow)
         to_escrow, move = players[turn](dice, turn, scores, escrow, buildable)
-        print "player %s escrows %s, and elects to " % (turn, to_escrow) + move
         # to_escrow is e.g. [1,2,2,2]
         for die in to_escrow:
             dice.remove(die)
         escrow += value(to_escrow)
+        print "player %s escrows %s, now has %s points in escrow, and elects to " % (turn, to_escrow, escrow) + move
         if move == 'bank':
             turn_over = True
             buildable = True
@@ -63,7 +63,7 @@ def play_dice(players=[dumb1, dumb1], building=False, end_score=2000, rebuttals=
                 dice = bottoms(dice)
                 print "bottoms makes it %s !" % (dice,)
 
-            if not can_score(dice): # fail to score: next turn
+            if len(options(dice)) == 0: # fail to score: next turn
                 turn_over = True
                 if len(dice) == 6:
                     print "farkle! " + str(dice)
@@ -81,6 +81,7 @@ def play_dice(players=[dumb1, dumb1], building=False, end_score=2000, rebuttals=
                     finished[turn] = True
                 elif scores[turn] > end_score:
                     finished[turn] = True
+                    print "\n now entering rebuttals phase!\n"
             turn = (turn + 1) % len(players)
     return scores
 
@@ -143,13 +144,6 @@ def value(dice, return_used=False):
     if return_used: return pts, used
     return pts
 
-def escrow_possibilities(dice):
-    p = []
-    if 1 in dice:
-        p.append((100, [1]))
-    if 5 in dice:
-        p.append((50, [5]))
-    return p
 
 def can_score(dice):
     if 1 not in dice and 5 not in dice:
@@ -165,4 +159,4 @@ def bottoms(dice):
     return [7 - die for die in dice]
 
 if __name__ == '__main__':
-    print "\n\nfinal score: " + str(play_dice(building=True))
+    print "\n\nfinal score: " + str(play_dice(players=[dumb1, dumb1, dumb1], building=True))
