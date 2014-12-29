@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import random
+import itertools
 
 # state of game: dice, turn, scores, escrow
 # e.g.: [1,3,3,5], 0, [100, 300], 200
@@ -25,6 +26,7 @@ def threshold(dice, scores, escrow):
             return [1], 'roll'
         else:
             return [5], 'roll'
+
 
 def play_dice(players=[dumb1, dumb1], building=False):
     """ currently doesn't allow building off scores
@@ -75,48 +77,64 @@ def play_dice(players=[dumb1, dumb1], building=False):
                 escrow = 0
     return scores
 
-def value(dice):
-    s = 0
+def options(dice):
+    opts = []
+    dice.sort()
+    for i in range(len(dice)):
+        for combination in itertools.combinations(dice, i):
+            opt = value(combination, True)
+            if opt[0] > 0 and opt not in opts:
+                opts.append(opt)
+    return tuple(reversed(sorted(opts, key=lambda opt: opt[0])))
+
+def value(dice, return_used=False):
+    pts = 0
+    used = []
     while len(dice) > 0:
         dim = len(set(dice))
         if len(dice) == 6 and dim == 1:
-            dice = []
-            s += 3000
+            pts += 3000
+            used += dice
             break
         elif len(dice) == 6 and all([dice.count(die) == 3 for die in set(dice)]):
-            dice = []
-            s += 2500
+            pts += 2500
+            used += dice
             break
         elif len(dice) == 6 and dim == 6:
-            dice = []
-            s += 1500
+            pts += 1500
+            used += dice
             break
         elif len(dice) == 6 and all([dice.count(die) == 2 for die in set(dice)]):
-            dice = []
-            s += 1500
+            pts += 1500
+            used += dice
             break
         elif any([dice.count(die) == 5 for die in set(dice)]):
+            pts += 2000
+            used += [die for die in dice if dice.count(die) == 5]
             dice = [die for die in dice if dice.count(die) != 5]
-            s += 2000
-            break
+            continue
         elif any([dice.count(die) == 4 for die in set(dice)]):
+            pts += 1000
+            used += [die for die in dice if dice.count(die) == 4]
             dice = [die for die in dice if dice.count(die) != 4]
-            s += 1000
-            break
+            continue
         elif any([dice.count(die) == 3 for die in set(dice)]):
             d = [die for die in set(dice) if dice.count(die) == 3][0]
+            pts += 300 if d == 1 else 100 * d
+            used += [die for die in dice if die == d]
             dice = [die for die in dice if die != d]
-            s += 300 if d == 1 else 100 * d
-            break
+            continue
         else:
             for die in dice:
                 if die == 1:
-                    s += 100
+                    pts += 100
+                    used.append(die)
                 elif die == 5:
-                    s += 50
-            dice = []
+                    pts += 50
+                    used.append(die)
             break
-    return s
+    if return_used: return pts, used
+    return pts
 
 def can_score(dice):
     if 1 not in dice and 5 not in dice:
