@@ -1,78 +1,86 @@
 #!/usr/bin/env python
 import random
 
-# state of game: dice, turn, scores, escrow
-# e.g.: [1,3,3,5], 0, [100, 300], 200
+# state of game: dice, turn, scores, escrow, buildable
+# e.g.: [1,3,3,5], 0, [100, 300], 200, False
 # see dumb1 for the API for a player
 
-def dumb1(dice, scores, escrow):
-    """ takes a list of dice. 
-    returns a subset of dice to move to escrow, and a move
-    """
-    if dice == []: return [], 'roll'
-    if 1 in dice:
-        if len(dice) == 2:
-            return [1], 'bottoms'
-        else:
-            return [1], 'roll'
-    return [], 'bank'
+def dumb1(dice, turn, scores, escrow, buildable=False):
+    """ takes the state of the game and returns a move
 
-def threshold(dice, scores, escrow):
-    if escrow >= 400:
-        return [], 'bank'
+    returns a subset of dice to move to escrow, and an action
+    """
+    if dice == []:
+        return [], 'roll'
+    if buildable:
+        return [], 'start fresh'
+    to_escrow = escrow_possibilities(dice)[0][1]
+    if escrow >= 200:
+        return to_escrow, 'bank'
     else:
-        if 1 in dice:
-            return [1], 'roll'
-        else:
-            return [5], 'roll'
+        return to_escrow, 'roll'
 
-def play_dice(players=[dumb1, dumb1], building=False):
-    """ currently doesn't allow building off scores
-        also doesn't allow rebuttals
+def play_dice(players=[dumb1, dumb1], building=False, end_score=2000, rebuttals=True):
+    """ one game of dice
     """
-    dice, turn, scores, escrow = [], 0, [0]*len(players), 0
-    while max(scores) < 2000:
+
+    finished = [False]*len(players)
+    dice, turn, scores, escrow, buildable = [], 0, [0]*len(players), 0, False
+    while not all(finished):
+        # each loop is a round, there may be multiple rounds per turn
         # a turn starts with dice presented to a player,
         # they must first choose what to escrow,
         # then whether to bank or roll
         # sometimes a player is presented with [] as dice
         # they must roll in this case?
+        turn_over = False
         print "\nnew round. scores: %s" % (scores,)
         print "player %s is presented with dice: %s, and %s in escrow " % (turn, dice, escrow)
-        to_escrow, move = players[turn](dice, scores, escrow)
+        to_escrow, move = players[turn](dice, turn, scores, escrow, buildable)
         print "player %s escrows %s, and elects to " % (turn, to_escrow) + move
         # to_escrow is e.g. [1,2,2,2]
         for die in to_escrow:
             dice.remove(die)
         escrow += value(to_escrow)
         if move == 'bank':
+            turn_over = True
+            buildable = True
             scores[turn] += escrow
             if not building:
                 dice = []
                 escrow = 0
-            turn = (turn + 1) % len(players)
-        elif move == 'bottoms':
-            dice = roll(len(dice))
-            print "player %s rolls %s ..." % (turn, dice)
-            dice = bottoms(dice)
-            print "bottoms makes it %s !" % (dice,)
-            if not can_score(dice): # fail to score: next turn
-                print 'fail to score with ' + str(dice)
-                turn = (turn + 1) % len(players)
+        elif move in ["roll", "bottoms", "start fresh"]:
+            buildable = False
+            # all others are some kind of dice rolling
+            if move == "start fresh":
                 dice = []
                 escrow = 0
-        elif move == 'roll':
             dice = roll(len(dice))
             dice.sort()
             print "player %s rolls %s " % (turn, dice)
-            if value(dice) == 0: # fail to score: next turn
+            if move == "bottoms":
+                dice = bottoms(dice)
+                print "bottoms makes it %s !" % (dice,)
+
+            if not can_score(dice): # fail to score: next turn
+                turn_over = True
                 if len(dice) == 6:
                     print "farkle! " + str(dice)
                 else:
                     print 'fail to score with ' + str(dice)
-                turn = (turn + 1) % len(players)
                 dice = []
                 escrow = 0
+
+        if turn_over:
+            if not rebuttals:
+                if scores[turn] > end_score:
+                    finished = [True]*len(players)
+            else:
+                if any(finished):
+                    finished[turn] = True
+                elif scores[turn] > end_score:
+                    finished[turn] = True
+            turn = (turn + 1) % len(players)
     return scores
 
 def value(dice):
@@ -117,6 +125,14 @@ def value(dice):
             dice = []
             break
     return s
+
+def escrow_possibilities(dice):
+    p = []
+    if 1 in dice:
+        p.append((100, [1]))
+    if 5 in dice:
+        p.append((50, [5]))
+    return p
 
 def can_score(dice):
     if 1 not in dice and 5 not in dice:
