@@ -53,11 +53,6 @@ def builder1(dice, turn, scores, escrow, buildable=False):
         return to_escrow, 'roll'
 
 def rational1(dice, turn, scores, escrow, buildable=False):
-    if buildable:
-        return [], 'roll'
-    if dice == []:
-        return [], 'roll'
-
     def expected_value_next_roll(option):
         option_value, to_escrow = option
         if len(to_escrow) == len(dice): return escrow + option_value
@@ -66,6 +61,14 @@ def rational1(dice, turn, scores, escrow, buildable=False):
         pr_next_roll = 1.0 - pr_farkel[len(dice) - len(to_escrow)]
         value_next_roll = escrow + option_value + expected_value[len(dice) - len(to_escrow)]
         return pr_next_roll * value_next_roll
+
+    if buildable:
+        if expected_value_next_roll((0, [])) < 350:
+            return [], 'start fresh'
+        else:
+            return [], 'roll'
+    if dice == []:
+        return [], 'roll'
 
     choice = max(options(dice), key=expected_value_next_roll)
     if escrow + choice[0] >= expected_value_next_roll(choice):
