@@ -2,9 +2,25 @@
 import random
 import itertools
 
+ACTIONS = ['start fresh', 'roll', 'bank', 'bottoms']
 # state of game: dice, turn, scores, escrow, buildable
 # e.g.: [1,3,3,5], 0, [100, 300], 200, False
 # see dumb1 for the API for a player
+def manual(dice, turn, scores, escrow, buildable=False):
+    while True:
+        print "dice: " + str(dice)
+        print "escrow: " + str(escrow)
+        print "type a list of dice to escrow, followed by an action"
+        print "e.g. 1: [], 'start fresh'"
+        print "e.g. 2: [1,5,5], 'bank'"
+        print "e.g. 3: [2,2,2], 'roll'"
+        try:
+            to_escrow, action = input()
+            if type(to_escrow) != list or action not in ACTIONS:
+                raise ValueError('try again')
+            return to_escrow, action
+        except Exception as e:
+            print e
 
 def dumb1(dice, turn, scores, escrow, buildable=False):
     """ takes the state of the game and returns a move
@@ -181,5 +197,5 @@ def evaluate_strategies(players=[dumb1, dumb1, builder1], building=True, end_sco
     return wins
 
 if __name__ == '__main__':
-    # print "\n\nfinal score: " + str(play_dice(players=[dumb1, dumb1, builder1], building=True))
-    print "\n\n wins: " + str(evaluate_strategies())
+    print "\n\nfinal score: " + str(play_dice(players=[dumb1, manual, builder1], building=True))
+    # print "\n\n wins: " + str(evaluate_strategies())
