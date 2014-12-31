@@ -93,6 +93,12 @@ def play_dice(players=[dumb1, dumb1], building=True, end_score=10000, rebuttals=
         # to_escrow is e.g. [1,2,2,2]
         for die in to_escrow:
             dice.remove(die)
+        if len(dice) == 0 and len(to_escrow) > 0:
+            print "you've rounded the horn"
+            import platform
+            if platform.system() == 'Darwin':
+                import os
+                os.system("say youve rounded the horn")
         escrow += value(to_escrow)
         print "player %s escrows %s, now has %s points in escrow, and elects to " % (turn, to_escrow, escrow) + action
         if action == 'bank':
@@ -135,6 +141,8 @@ def play_dice(players=[dumb1, dumb1], building=True, end_score=10000, rebuttals=
                     finished[turn] = True
                     print "\n now entering rebuttals phase!\n"
             turn = (turn + 1) % len(players)
+    import os
+    os.system("say game over, man")
     return scores
 
 def options(dice):
@@ -218,5 +226,5 @@ def evaluate_strategies(players=[dumb1, dumb1, builder1], building=True, end_sco
     return wins
 
 if __name__ == '__main__':
-    print "\n\nfinal score: " + str(play_dice(players=[dumb1, rational1, manual], building=True))
+    print "\n\nfinal score: " + str(play_dice(players=[dumb1, rational1, dumb1], building=True, end_score=4000))
     # print "\n\n wins: " + str(evaluate_strategies())
