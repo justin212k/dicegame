@@ -80,14 +80,14 @@ def play_dice(players=[dumb1, dumb1], building=True, end_score=10000, rebuttals=
     finished = [False]*len(players)
     dice, turn, scores, escrow, piggybackable = [], 0, [0]*len(players), 0, False
     while not all(finished):
-        # each loop is a round, there may be multiple rounds per turn
+        # each loop is a roll, there may be multiple rolls per turn
         # a turn starts with dice presented to a player,
         # they must first choose what to escrow,
         # then whether to bank or roll
         # sometimes a player is presented with [] as dice
         # they must roll in this case?
         turn_over = False
-        print "\nnew round. scores: %s" % (scores,)
+        print "\nnew roll. scores: %s" % (scores,)
         # print "player %s is presented with dice: %s, and %s in escrow " % (turn, dice, escrow)
         to_escrow, action = players[turn](dice, turn, scores, escrow, piggybackable)
         # to_escrow is e.g. [1,2,2,2]
