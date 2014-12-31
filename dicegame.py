@@ -3,10 +3,10 @@ import random
 import itertools
 
 ACTIONS = ['start fresh', 'roll', 'bank', 'bottoms']
-# state of game: dice, turn, scores, escrow, buildable
+# state of game: dice, turn, scores, escrow, piggybackable
 # e.g.: [1,3,3,5], 0, [100, 300], 200, False
 # see dumb1 for the API for a player
-def manual(dice, turn, scores, escrow, buildable=False):
+def manual(dice, turn, scores, escrow, piggybackable=False):
     while True:
         print "dice: " + str(dice)
         print "escrow: " + str(escrow)
@@ -22,12 +22,12 @@ def manual(dice, turn, scores, escrow, buildable=False):
         except Exception as e:
             print e
 
-def dumb1(dice, turn, scores, escrow, buildable=False):
+def dumb1(dice, turn, scores, escrow, piggybackable=False):
     """ takes the state of the game and returns a move
 
     returns a subset of dice to move to escrow, and an action
     """
-    if buildable:
+    if piggybackable:
         return [], 'start fresh'
     if dice == []:
         return [], 'roll'
@@ -37,12 +37,12 @@ def dumb1(dice, turn, scores, escrow, buildable=False):
     else:
         return to_escrow, 'roll'
 
-def builder1(dice, turn, scores, escrow, buildable=False):
+def builder1(dice, turn, scores, escrow, piggybackable=False):
     """ takes the state of the game and returns a move
 
     returns a subset of dice to move to escrow, and an action
     """
-    if buildable:
+    if piggybackable:
         return [], 'roll'
     if dice == []:
         return [], 'roll'
@@ -52,8 +52,8 @@ def builder1(dice, turn, scores, escrow, buildable=False):
     else:
         return to_escrow, 'roll'
 
-def rational1(dice, turn, scores, escrow, buildable=False):
-    if buildable:
+def rational1(dice, turn, scores, escrow, piggybackable=False):
+    if piggybackable:
         return [], 'roll'
     if dice == []:
         return [], 'roll'
@@ -78,7 +78,7 @@ def play_dice(players=[dumb1, dumb1], building=True, end_score=10000, rebuttals=
     """
 
     finished = [False]*len(players)
-    dice, turn, scores, escrow, buildable = [], 0, [0]*len(players), 0, False
+    dice, turn, scores, escrow, piggybackable = [], 0, [0]*len(players), 0, False
     while not all(finished):
         # each loop is a round, there may be multiple rounds per turn
         # a turn starts with dice presented to a player,
@@ -89,29 +89,29 @@ def play_dice(players=[dumb1, dumb1], building=True, end_score=10000, rebuttals=
         turn_over = False
         print "\nnew round. scores: %s" % (scores,)
         # print "player %s is presented with dice: %s, and %s in escrow " % (turn, dice, escrow)
-        to_escrow, move = players[turn](dice, turn, scores, escrow, buildable)
+        to_escrow, action = players[turn](dice, turn, scores, escrow, piggybackable)
         # to_escrow is e.g. [1,2,2,2]
         for die in to_escrow:
             dice.remove(die)
         escrow += value(to_escrow)
-        print "player %s escrows %s, now has %s points in escrow, and elects to " % (turn, to_escrow, escrow) + move
-        if move == 'bank':
+        print "player %s escrows %s, now has %s points in escrow, and elects to " % (turn, to_escrow, escrow) + action
+        if action == 'bank':
             turn_over = True
-            buildable = True
+            piggybackable = True
             scores[turn] += escrow
             if not building:
                 dice = []
                 escrow = 0
-        elif move in ["roll", "bottoms", "start fresh"]:
-            buildable = False
+        elif action in ["roll", "bottoms", "start fresh"]:
+            piggybackable = False
             # all others are some kind of dice rolling
-            if move == "start fresh":
+            if action == "start fresh":
                 dice = []
                 escrow = 0
             dice = roll(len(dice))
             dice.sort()
             print "player %s rolls %s " % (turn, dice)
-            if move == "bottoms":
+            if action == "bottoms":
                 dice = bottoms(dice)
                 print "bottoms makes it %s !" % (dice,)
 
@@ -218,5 +218,5 @@ def evaluate_strategies(players=[dumb1, dumb1, builder1], building=True, end_sco
     return wins
 
 if __name__ == '__main__':
-    print "\n\nfinal score: " + str(play_dice(players=[dumb1, manual, builder1], building=True))
+    print "\n\nfinal score: " + str(play_dice(players=[dumb1, rational1, manual], building=True))
     # print "\n\n wins: " + str(evaluate_strategies())
