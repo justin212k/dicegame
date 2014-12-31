@@ -53,7 +53,7 @@ def builder1(dice, turn, scores, escrow, piggybackable=False):
         return to_escrow, 'roll'
 
 
-def rational1(dice, turn, scores, escrow, buildable=False):
+def rational1(dice, turn, scores, escrow, piggybackable=False):
     def expected_value_next_roll(option):
         option_value, to_escrow = option
         if len(to_escrow) == len(dice): return escrow + option_value
@@ -63,7 +63,7 @@ def rational1(dice, turn, scores, escrow, buildable=False):
         value_next_roll = escrow + option_value + expected_value[len(dice) - len(to_escrow)]
         return pr_next_roll * value_next_roll
 
-    if buildable:
+    if piggybackable:
         if expected_value_next_roll((0, [])) < 350:
             return [], 'start fresh'
         else:
@@ -222,5 +222,5 @@ def evaluate_strategies(players=[dumb1, dumb1, builder1], piggybacking=True, end
     return wins
 
 if __name__ == '__main__':
-    print "\n\nfinal score: " + str(play_dice(players=[dumb1, rational1, manual], piggybacking=True))
+    print "\n\nfinal score: " + str(play_dice(players=[dumb1, rational1, dumb1], piggybacking=True))
     # print "\n\n wins: " + str(evaluate_strategies())
