@@ -56,9 +56,9 @@ def builder1(dice, turn, scores, escrow, piggybackable=False):
 def rational1(dice, turn, scores, escrow, piggybackable=False):
     def expected_value_next_roll(option):
         option_value, to_escrow = option
-        if len(to_escrow) == len(dice): return escrow + option_value
         expected_value = { 1: 75, 2: 113, 3: 197, 4: 250, 5: 300, 6: 350 }
         pr_farkel = { 1: 0.6667, 2: 0.4444, 3: 0.2778, 4: 0.1574, 5: 0.0772, 6: 0.0231 }
+        if len(to_escrow) == len(dice): return escrow + option_value + (1.0 - pr_farkel[6]) * expected_value[6]
         pr_next_roll = 1.0 - pr_farkel[len(dice) - len(to_escrow)]
         value_next_roll = escrow + option_value + expected_value[len(dice) - len(to_escrow)]
         return pr_next_roll * value_next_roll
